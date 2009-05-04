@@ -176,7 +176,7 @@ depth (Node _ (left) (right)) = 1 + (max (depth left) (depth right) )
 data TurnDirection = LeftTurn
 				 | RightTurn
 				 | Straight
-	deriving (Show)
+	deriving (Show, Eq)
 	
 -- 10. Write a function that calculates the turn made by three 2D points and returns a TurnDirection (I changed name to TurnDirection)
 data Point = Point {
@@ -312,8 +312,12 @@ testCase_ListOfPoints =
         (Point 5 (-2)), (Point 3 (-2)), (Point 3 4)] 
         [RightTurn, LeftTurn, LeftTurn, LeftTurn, RightTurn, RightTurn, RightTurn, Straight, Straight, LeftTurn, Straight, RightTurn]
 
-
-
+getTurnList :: [Point] -> [TurnDirection]
+getTurnList [] = error "Must have at least 3 Points, dude"
+getTurnList (x:[]) = getTurnList []
+getTurnList (x:y:[]) = getTurnList []
+getTurnList (x:y:z:[]) = [getTurnDirection (Angle (Line x y) z)]
+getTurnList (x:y:z:xs) = getTurnDirection (Angle (Line x y) z) : getTurnList (y:z:xs)
 
 
 
