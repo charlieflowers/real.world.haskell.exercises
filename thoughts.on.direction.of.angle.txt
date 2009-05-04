@@ -1,0 +1,5 @@
+for y = x, less than means right, greater than means left. (1,1), (2,2), (3,3), say they gave (8,1). Definitely turned right, and 1 is less than expected value of 8.
+
+for y - -x: (1, -1), (2,-2), (3,-3). Say they gave (5, 0). the direction is left. And 0 is greater than the expected value for straight line, which is -5.
+
+Can you find a case where this is not true? 
