@@ -259,6 +259,8 @@ q = Angle (Line (Point 0 3) (Point 1 3)) (Point 2 5)
 r = Angle (Line (Point 3 1) (Point 3 2)) (Point 8 1)
 s = Angle (Line (Point 3 2) (Point 3 1)) (Point 8 1)
 t = Angle (Line (Point (-3) 3) (Point (-2) 2)) (Point (-8) 1)
+straightAngle = Angle (Line (Point 1 1) (Point 2 2)) (Point 3 3)
+
 
 linePointComparisonValue :: Angle -> Double
 linePointComparisonValue angle = coordValue (linePointToCompareWithOutsidePoint angle) (comparisonCoord (line angle))
@@ -282,6 +284,7 @@ getAngleBreakdown angle =
 			l = line angle
 
 getTurnDirectionFromBreakdown :: AngleBreakdown -> TurnDirection
+getTurnDirectionFromBreakdown (AngleBreakdown _ _ EQ) = Straight
 getTurnDirectionFromBreakdown (AngleBreakdown Y Increasing LT) = RightTurn
 getTurnDirectionFromBreakdown (AngleBreakdown Y Increasing GT) = LeftTurn
 getTurnDirectionFromBreakdown (AngleBreakdown Y Decreasing LT) = LeftTurn
@@ -294,6 +297,18 @@ getTurnDirectionFromBreakdown (AngleBreakdown X Decreasing GT) = LeftTurn
 getTurnDirection :: Angle -> TurnDirection
 getTurnDirection angle = getTurnDirectionFromBreakdown (getAngleBreakdown angle)
 
+-- 11. Define a function that takes a list of 2D points and computes the direction of each successive triple. Given 
+--  a list of points [a,b,c,d,e], it should begin by computing the turn made by [a,b,c], then the turn made 
+--  by [b,c,d], then [c,d,e]. Your function should return a list of Direction.
+
+data TestCase_ListOfPoints = TestCase_ListOfPoints {
+	listOfPoints :: [Point]
+	, expectedResults :: [TurnDirection]
+}
+
+testCase_ListOfPoints = 
+	TestCase_ListOfPoints [(Point 1 1), (Point (-4) 2), (Point (-5) 4), (Point (-5) (-2)), 
+		(Point (-3) (-3))] [RightTurn, LeftTurn, LeftTurn, LeftTurn, RightTurn, RightTurn, RightTurn, Straight, Straight, LeftTurn, Straight, RightTurn]
 
 
 
