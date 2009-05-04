@@ -223,8 +223,8 @@ getLineDirection line@(Line (Point sx sy) (Point ex ey)) =
 		where 
 			startPoint = Point sx sy
 			endPoint = Point ex ey
-			startCompareValue = coordValue startPoint (comparisonCoord line) 
-			endCompareValue = coordValue endPoint (comparisonCoord line) 
+			startCompareValue = coordValue startPoint (directionalCoord line) 
+			endCompareValue = coordValue endPoint (directionalCoord line) 
 
 data Angle = Angle {
 	line :: Line
@@ -268,6 +268,19 @@ opccVsLpcc angle = compare opValue lineValue
 	where
 		opValue = outsidePointComparisonValue angle
 		lineValue = linePointComparisonValue angle
+
+data AngleBreakdown = AngleBreakdown {
+	comparing :: WhichCoordinate
+	, lineDirection :: LineDirection
+	, compareResult :: Ordering
+} deriving (Show)
+
+getAngleBreakdown :: Angle -> AngleBreakdown
+getAngleBreakdown angle = 
+	AngleBreakdown (comparisonCoord l) (getLineDirection l) (opccVsLpcc angle)
+		where 
+			l = line angle
+
 
 
 
