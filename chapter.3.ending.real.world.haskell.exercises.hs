@@ -291,7 +291,8 @@ getTurnDirectionFromBreakdown (AngleBreakdown X Increasing GT) = RightTurn
 getTurnDirectionFromBreakdown (AngleBreakdown X Decreasing LT) = RightTurn
 getTurnDirectionFromBreakdown (AngleBreakdown X Decreasing GT) = LeftTurn
 
-
+getTurnDirection :: Angle -> TurnDirection
+getTurnDirection angle = getTurnDirectionFromBreakdown (getAngleBreakdown angle)
 
 
 
