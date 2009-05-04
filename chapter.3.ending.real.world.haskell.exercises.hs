@@ -173,8 +173,8 @@ depth (Node _ (left) (right)) = 1 + (max (depth left) (depth right) )
 
 -- 9. Consider three two-dimensional points a, b, and c. If we look at the angle formed by the line segment from a to b and the line segment from b to c, 
 -- it either turns left, turns right, or forms a straight line. Define a Direction data type that lets you represent these possibilities. 
-data TurnDirection = Left
-				 | Right
+data TurnDirection = LeftTurn
+				 | RightTurn
 				 | Straight
 	deriving (Show)
 	
@@ -280,6 +280,9 @@ getAngleBreakdown angle =
 	AngleBreakdown (comparisonCoord l) (getLineDirection l) (opccVsLpcc angle)
 		where 
 			l = line angle
+
+getTurnDirectionFromBreakdown :: AngleBreakdown -> TurnDirection
+getTurnDirectionFromBreakdown (AngleBreakdown Y Increasing LT) = RightTurn
 
 
 
