@@ -260,6 +260,15 @@ r = Angle (Line (Point 3 1) (Point 3 2)) (Point 8 1)
 s = Angle (Line (Point 3 2) (Point 3 1)) (Point 8 1)
 t = Angle (Line (Point (-3) 3) (Point (-2) 2)) (Point (-8) 1)
 
+linePointComparisonValue :: Angle -> Double
+linePointComparisonValue angle = coordValue (linePointToCompareWithOutsidePoint angle) (comparisonCoord (line angle))
+
+opccVsLpcc :: Angle -> Ordering
+opccVsLpcc angle = compare opValue lineValue
+	where
+		opValue = outsidePointComparisonValue angle
+		lineValue = linePointComparisonValue angle
+
 
 
 
