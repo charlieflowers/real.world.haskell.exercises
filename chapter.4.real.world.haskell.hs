@@ -59,7 +59,11 @@ splitWith f l = case prefix of
 			[] 		-> []
 			x:xs 	-> dropWhile f xs -- obliterate the "delimiters" from the output, just as "words" obliterates spaces
 		meat = splitWith f rest
-			
+
+-- 3. Using the command framework from the section called “A simple command line framework”, write a program that prints the first word of each line of its input.
+
+-- the command line framework from the book is saved in InteractWith.hs. I then copied it over to "firstWord.hs" and added my answer there.
+
 
 
 
