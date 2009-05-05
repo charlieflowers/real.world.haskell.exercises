@@ -51,13 +51,14 @@ splitWith :: (a -> Bool) -> [a] -> [[a]]
 
 splitWith f [] = []
 splitWith f l = case prefix of
-					[]   -> (splitWith f rest)
-					xs   -> [xs] ++ (splitWith f rest)
+					[]   -> meat
+					xs   -> [xs] ++ meat
 	where
 		(prefix, suffix) = break f l
 		rest = case suffix of
 			[] 		-> []
 			x:xs 	-> dropWhile f xs -- obliterate the "delimiters" from the output, just as "words" obliterates spaces
+		meat = splitWith f rest
 			
 
 
