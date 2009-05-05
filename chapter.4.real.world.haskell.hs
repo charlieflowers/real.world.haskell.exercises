@@ -42,20 +42,27 @@ safeInit xs = Just (init xs)
 -- 2. Write a function splitWith that acts similarly to words, but takes a predicate and a list of any type, and splits its input 
 -- 		list on every element for which the predicate returns False.
 
--- splitPredicate :: (a -> Bool) -> [a] -> [[a]]
---splitPredicate _ [] = [[]]
---splitPredicate f l = [thisChunk] ++ (splitPredicate f rest)
+-- isSpace is for testing break to see how it compares to word.
+isSpace :: Char -> Bool
+isSpace ' ' = True
+isSpace _ = False
+
+splitWith :: (a -> Bool) -> [a] -> [[a]]
+-- splitWith _ [] = [[]]
+--splitWith f l = [thisChunk] ++ (splitWith f rest)
 --	where
 --		thisChunk = takeWhile f l
 --		rest = dropWhile f l
 
--- splitPredicate f [] = [[]]
-splitPredicate f l = (thisChunk, rest) -- [thisChunk] ++ (splitPredicate f rest)
+splitWith f [] = []
+-- splitWith f l = (thisChunk, rest) -- [thisChunk] ++ (splitWith f rest)
+splitWith f l = [thisChunk] ++ (splitWith f rest)
 	where
 		(prefix, suffix) = break f l
 		(thisChunk, rest) = case suffix of
 			[] 		-> (prefix, [])
-			x:xs 	-> (prefix ++ [x], xs)
+			x:xs 	-> (prefix, dropWhile f xs) -- obliterate the "delimiters" from the output, just as "words" obliterates spaces
+
 
 
 
