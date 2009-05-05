@@ -17,8 +17,45 @@ isVowel _ = False -- intentionally ifgnoring caps
 data a `Pair` b = a `Pair` b
                   deriving (Show)
 
+isLessThanFive :: Int -> Bool
+isLessThanFive x = x < 5
 
+-- Chapter 4 exercises, section one (after bit about string functions)
 
+-- 1. Write your own “safe” definitions of the standard partial list functions, but make sure that yours never fail. As a hint, you might want to consider using the following types.
+safeHead :: [a] -> Maybe a
+safeHead [] = Nothing
+safeHead xs = Just (head xs)
+
+safeTail :: [a] -> Maybe [a]
+safeTail [] = Nothing
+safeTail xs = Just (tail xs)
+
+safeLast :: [a] -> Maybe a
+safeLast [] = Nothing
+safeLast xs = Just (last xs)
+
+safeInit :: [a] -> Maybe [a]
+safeInit [] = Nothing
+safeInit xs = Just (init xs)
+
+-- 2. Write a function splitWith that acts similarly to words, but takes a predicate and a list of any type, and splits its input 
+-- 		list on every element for which the predicate returns False.
+
+-- splitPredicate :: (a -> Bool) -> [a] -> [[a]]
+--splitPredicate _ [] = [[]]
+--splitPredicate f l = [thisChunk] ++ (splitPredicate f rest)
+--	where
+--		thisChunk = takeWhile f l
+--		rest = dropWhile f l
+
+-- splitPredicate f [] = [[]]
+splitPredicate f l = (thisChunk, rest) -- [thisChunk] ++ (splitPredicate f rest)
+	where
+		(prefix, suffix) = break f l
+		(thisChunk, rest) = case suffix of
+			[] 		-> (prefix, [])
+			x:xs 	-> (prefix ++ [x], xs)
 
 
 
