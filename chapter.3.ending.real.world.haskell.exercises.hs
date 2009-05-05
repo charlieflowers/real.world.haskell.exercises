@@ -319,6 +319,29 @@ getTurnList (x:y:[]) = getTurnList []
 getTurnList (x:y:z:[]) = [getTurnDirection (Angle (Line x y) z)]
 getTurnList (x:y:z:xs) = getTurnDirection (Angle (Line x y) z) : getTurnList (y:z:xs)
 
+-- Send this tweet: more haskell joy! hot damn!  book had silly exercise where math was harder than the haskell. NAILED it! Code would make guru puke but still!
+
+-- Now in Chapter 4
+
+-- My own playing around with break:
+
+splitAtVowels :: [Char] -> ([Char], [Char])
+
+splitAtVowels list = break isVowel list
+
+isVowel 'a' = True
+isVowel 'e' = True
+isVowel 'i' = True
+isVowel 'o' = True
+isVowel 'u' = True
+isVowel _ = False -- intentionally ifgnoring caps
+
+-- Some other stuff not related to chapter 3 below this line
+data a `Pair` b = a `Pair` b
+                  deriving (Show)
+
+
+
 
 
 
