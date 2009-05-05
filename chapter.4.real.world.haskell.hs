@@ -48,20 +48,17 @@ isSpace ' ' = True
 isSpace _ = False
 
 splitWith :: (a -> Bool) -> [a] -> [[a]]
--- splitWith _ [] = [[]]
---splitWith f l = [thisChunk] ++ (splitWith f rest)
---	where
---		thisChunk = takeWhile f l
---		rest = dropWhile f l
 
 splitWith f [] = []
--- splitWith f l = (thisChunk, rest) -- [thisChunk] ++ (splitWith f rest)
-splitWith f l = [thisChunk] ++ (splitWith f rest)
+splitWith f l = case prefix of
+					[]   -> (splitWith f rest)
+					xs   -> [xs] ++ (splitWith f rest)
 	where
 		(prefix, suffix) = break f l
-		(thisChunk, rest) = case suffix of
-			[] 		-> (prefix, [])
-			x:xs 	-> (prefix, dropWhile f xs) -- obliterate the "delimiters" from the output, just as "words" obliterates spaces
+		rest = case suffix of
+			[] 		-> []
+			x:xs 	-> dropWhile f xs -- obliterate the "delimiters" from the output, just as "words" obliterates spaces
+			
 
 
 
