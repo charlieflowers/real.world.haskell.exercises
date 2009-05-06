@@ -145,10 +145,41 @@ asInt_fold string | isInfixOf "." string = error "I can't handle decimal points"
 asInt_fold ('-':xs) = -1 * (asInt_fold xs) -- this should handle minus sign, which is only valid at the head (ignoring whitespace for now)
 asInt_fold string = fst (foldr helper (0,0) string)
 	where
-		helper char (sum,place) = (newValue, newPlace)
-			where 
-				newValue = (10 ^ place) * (digitToInt char) + sum
+		helper char (sum,place)    | place == 9 && digitValue > 2          = throwMaxIntError
+		                           | maxInt - sum < newPlaceComponent      = throwMaxIntError
+                                   | otherwise                             = (newValue, newPlace)
+			where
+				digitValue =  (digitToInt char)
+				placeMultiplier = (10 ^ place)
+				newPlaceComponent = placeMultiplier * digitValue
+				newValue = newPlaceComponent + sum
 				newPlace = place + 1
+				maxInt = 2147483647
+				throwMaxIntError = error "The value you passed is larger than maxInt, which is 2147483647"
+
+-- hmmm, the last edge case is interesting. Something overflowed. It (on my machine) can handle up to 9 places before it all goes to shit.
+-- GOT IT!!! Int is either 32-bit or 64-bit depending on machine (or more). On my machine, I just confirmed it is 32 bit.
+--  Now, 2^32 = 4,294,967,296, but I can't go that high! Why? Because THE FIRST BIT IS USED FOR THE SIGN. Therefore, I have 31 bits to work with. Thus,
+--  the max value an Int can hold on my machine is 2^31 - 1, which is 2147483647. And here's proof straight from interpreter:
+-- *Main Data.Char Data.List> asInt_fold "2147483648"
+-- -2147483648 -- this is incorrectly negative because we overflowed over into the sign bit
+-- *Main Data.Char Data.List> asInt_fold "2147483647"
+-- 2147483647 -- this is correct.
+
+-- How to handle that edge case? Let's put a case expression around the definition of newPlace, so it will error out if things get too high. I did that, but 
+--  I don't like it. Would be more readable at a higher level, so I will make that change once I get it working.
+
+-- My first attempt failed. This value, which is too high, does not error...
+-- *Main Data.Char Data.List> asInt_fold "2147483648"
+-- -2147483648
+
+-- OK, now, got it. With the following interesting notes: 
+-- 1. At first, I had 2 equations for defining helper (each with different patterns), but I wanted both to share the same where or let clause. I don't think there's
+--  a way to do this though. So I used just one equation, with just one pattern, and guards. That way, they could share the same where block. Find out if I'm right 
+--  that multiple equations can't share the same where / let.
+--
+-- 2. I made the style choice that, anytime I was repeating even a little snippet of a formula, I made that into a variable that I referred to twice. This is 
+--  nothing but DRY. Is this considered good practice in Haskell, or not, and why?
 
 
 
