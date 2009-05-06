@@ -1,5 +1,5 @@
 -- Now in Chapter 4
-import Data.List (isPrefixOf, isInfixOf)
+import Data.List (isPrefixOf, isInfixOf, foldl')
 import Data.Char (toUpper)
 import Data.Char (digitToInt)
 
@@ -250,14 +250,29 @@ asInt_either :: String -> Either ErrorMessage Int
 --      step sum char = Right (sum * 10 + (digitToInt char))
 --      err text = Left text
 
-asInt_either ""                             = err "Blank string given"
-asInt_either "-"                            = err "Need more than dash"
-asInt_either string | isInfixOf "." string  = err "Can't handle decimal points"
-asInt_either ('-':string)                   = negate (asInt_either string)
-asInt_either string                         = foldl' step 0 string
+asInt_either ('-':string) = case asInt_either string of
+   Right n -> Right (negate n)
+   other   -> other
+
+asInt_either string = f
    where 
-     step sum char = Right (sum * 10 + (digitToInt char))
-     err text = Left text
+      f = case string of
+         ""                   -> err "Blank string given"
+         "-"                  -> err "Need more than dash"
+         s | isInfixOf "." s  -> err "Can't handle decimal points"
+         _                    -> foldl' step (Right 0) string
+      err text = Left text
+      maxInt = 2147483647
+      maxIntDivBy10 = 214748364
+      step (Right sum) char = if hasOverflow
+                      then err "The number is larger than max Int of 2147483647"
+                      else Right (sum * 10 + digitValue)
+         where
+           digitValue = (digitToInt char)
+           hasOverflow = if sum > maxIntDivBy10 then True
+                         else if digitValue > maxInt - (sum * 10) then True
+                         else False
+      step other _ = other
 
 
 
