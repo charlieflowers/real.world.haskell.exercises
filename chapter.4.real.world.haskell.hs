@@ -222,6 +222,43 @@ asInt_idiom_fold string = fst (foldr helper (0,0) string)
                 maxInt = 2147483647
                 throwMaxIntError = error "The value is larger than max of 2147483647"
 
+-- 2. The asInt_fold function uses error, so its callers cannot handle errors. Rewrite it to fix this problem.
+-- type ErrorMessage = String
+-- asInt_either :: String -> Either ErrorMessage Int
+--
+-- ghci> asInt_either "33"
+-- Right 33
+-- ghci> asInt_either "foo"
+-- Left "non-digit 'o'"
+-- 
+-- First, some notes:
+--  A. I'm gonna write it using foldl', which would've been the better choice anyway (as the book hinted) [DON'T FORGET TO USE PRIME!!! FOLDL', NOT FOLDL]
+--  B. Remember, "type" creates an "alias", merely a synonym for the other type (but not interchangable). Sort of like C++ typedef.
+--  C. The type Either has 2 value ctors: Left a | Right a. Per rqmts, use Right for ok, Left for error.
+--
+
+type ErrorMessage = String
+asInt_either :: String -> Either ErrorMessage Int
+
+-- the following first try fails: "err" is not in scope (I'm trying to be DRY about my error handling). So, next I'll try to put the function into where clause as mentioned before.
+-- asInt_either ""                             = err "Blank string given"
+-- asInt_either "-"                            = err "Need more than dash"
+-- asInt_either string | isInfixOf "." string  = err "Can't handle decimal points"
+-- asInt_either ('-':string)                   = negate (asInt_either string)
+-- asInt_either string                         = foldl' step 0 string
+--    where 
+--      step sum char = Right (sum * 10 + (digitToInt char))
+--      err text = Left text
+
+asInt_either ""                             = err "Blank string given"
+asInt_either "-"                            = err "Need more than dash"
+asInt_either string | isInfixOf "." string  = err "Can't handle decimal points"
+asInt_either ('-':string)                   = negate (asInt_either string)
+asInt_either string                         = foldl' step 0 string
+   where 
+     step sum char = Right (sum * 10 + (digitToInt char))
+     err text = Left text
+
 
 
 
