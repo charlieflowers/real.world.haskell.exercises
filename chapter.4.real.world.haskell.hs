@@ -124,12 +124,13 @@ foldr_test = foldr rLetterCount 0 ["Hi", "there"]
 
 asInt_fold :: String -> Int
 
-asInt_fold string = fst (foldr helper (0,0) string)
-	where
-		helper char (sum,place) = (newValue, newPlace)
-			where 
-				newValue = (10 ^ place) * (digitToInt char) + sum
-				newPlace = place + 1
+-- The function as follows works but does not handle edge cases.
+--asInt_fold string = fst (foldr helper (0,0) string)
+--	where
+--		helper char (sum,place) = (newValue, newPlace)
+--			where 
+--				newValue = (10 ^ place) * (digitToInt char) + sum
+--				newPlace = place + 1
 
 -- Got the above part pretty quick. It's the gist. You do foldR, "r" being key, because then you know each successive call is for the next place value.
 --  You need to track the place value and the previous sum, so the accumulator has to be a pair.
@@ -138,6 +139,13 @@ asInt_fold string = fst (foldr helper (0,0) string)
 
 -- Now, let's deal with the edge cases....
 
+asInt_fold ('-':xs) = -1 * (asInt_fold xs) -- this should handle minus sign, which is only valid at the head (ignoring whitespace for now)
+asInt_fold string = fst (foldr helper (0,0) string)
+	where
+		helper char (sum,place) = (newValue, newPlace)
+			where 
+				newValue = (10 ^ place) * (digitToInt char) + sum
+				newPlace = place + 1
 
 
 
