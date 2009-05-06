@@ -181,6 +181,47 @@ asInt_fold string = fst (foldr helper (0,0) string)
 -- 2. I made the style choice that, anytime I was repeating even a little snippet of a formula, I made that into a variable that I referred to twice. This is 
 --  nothing but DRY. Is this considered good practice in Haskell, or not, and why?
 
+-- HEY!! I like my solution and all that, and it led to me asking 2 good StackOverflow questions. HOWEVER, after all that, it turns out that FOLDL was a MUCH BETTER 
+--  WAY TO GO!!! Why? Well, because all you woulda needed to do was multiply the incoming sum by ten! No need to keep track of the place. Therefore, the accumulator
+--  could be nothing more than just a single value (doesn't have to be a tuple anymore!!)
+
+-- NOW, i just LEARNED A GREAT THING ON STACK OVERFLOW!! It is a HASKELL IDIOM: DEFINE A FUNCTION IN *ITS OWN WHERE CLAUSE*!!! This lets MULTIPLE EQUATIONS SHARE 
+--  THE SAME WHERE CLAUSE ... because it will be THE SAME WHERE CLAUSE THAT THE VARIABLES ARE IN!!
+-- I am going to write my asInt_fold that way:
+
+someFunction v1 v2 = f 
+    where
+        f 99 | difference < 4 = 0
+        f v3 = difference ^ v3
+        difference = v1 - v2
+
+
+-- INTERESTING NOTE: I actually had the following function correct, but it was giving me "place not in scope" and "theChar not in scope" in the where clause. Why?
+--  BECAUSE THE INDENTATION WAS WRONG! Two learnings from this:
+--  1. Don't mix spaces and tabs. It could end up looking right to eyeballs, but not being at all what you meant to compiler
+--  2. When you get surprising scope errors, try using the syntax that makes whitespace insigificcant. If that works, then clean up your whitespace!
+
+asInt_idiom_fold :: String -> Int
+
+asInt_idiom_fold "" = error "You can't be giving me an empty string now"
+asInt_idiom_fold "-" = error "I need a little more than just a dash, dude"
+asInt_idiom_fold string | isInfixOf "." string = error "I can't handle decimal points"
+asInt_idiom_fold ('-':xs) = -1 * (asInt_idiom_fold xs) 
+asInt_idiom_fold string = fst (foldr helper (0,0) string)
+  where
+    helper theChar (sum,place) = f
+     where
+                f | place == 9 && digitValue > 2                = throwMaxIntError
+                  | maxInt - sum < newPlaceComponent            = throwMaxIntError
+                  | otherwise                                   = (newValue, newPlace)
+                digitValue =  digitToInt theChar
+                placeMultiplier = (10 ^ place)
+                newPlaceComponent = placeMultiplier * digitValue
+                newValue = newPlaceComponent + sum
+                newPlace = place + 1
+                maxInt = 2147483647
+                throwMaxIntError = error "The value is larger than max of 2147483647"
+
 
 
 
