@@ -1,5 +1,5 @@
 -- Now in Chapter 4
-import Data.List (isPrefixOf)
+import Data.List (isPrefixOf, isInfixOf)
 import Data.Char (toUpper)
 import Data.Char (digitToInt)
 
@@ -139,6 +139,9 @@ asInt_fold :: String -> Int
 
 -- Now, let's deal with the edge cases....
 
+asInt_fold "" = error "You can't be giving me an empty string now"
+asInt_fold "-" = error "I need a little more than just a fucking dash, dude"
+asInt_fold string | isInfixOf "." string = error "I can't handle decimal points"
 asInt_fold ('-':xs) = -1 * (asInt_fold xs) -- this should handle minus sign, which is only valid at the head (ignoring whitespace for now)
 asInt_fold string = fst (foldr helper (0,0) string)
 	where
