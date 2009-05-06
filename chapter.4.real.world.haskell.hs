@@ -189,7 +189,11 @@ asInt_fold string = fst (foldr helper (0,0) string)
 --  THE SAME WHERE CLAUSE ... because it will be THE SAME WHERE CLAUSE THAT THE VARIABLES ARE IN!!
 -- I am going to write my asInt_fold that way:
 
-someFunction v1 v2 = f 
+charlieMaxInt = 2 ^ 31 - 1
+charlieMaxIntAsString = "2147483647"
+charlieTooBigIntAsString = "2147483648"
+
+someFunction v1 v2 = f   
     where
         f 99 | difference < 4 = 0
         f v3 = difference ^ v3
@@ -264,7 +268,8 @@ asInt_either string = f
       err text = Left text
       maxInt = 2147483647
       maxIntDivBy10 = 214748364
-      step (Right sum) char = if hasOverflow
+      step (Right sum) char = if nonDigit char then err ("non-digit '" ++ [char] ++ "'")
+                      else if hasOverflow
                       then err "The number is larger than max Int of 2147483647"
                       else Right (sum * 10 + digitValue)
          where
@@ -272,6 +277,7 @@ asInt_either string = f
            hasOverflow = if sum > maxIntDivBy10 then True
                          else if digitValue > maxInt - (sum * 10) then True
                          else False
+           nonDigit char = char < '0' || char > '9'
       step other _ = other
 
 
