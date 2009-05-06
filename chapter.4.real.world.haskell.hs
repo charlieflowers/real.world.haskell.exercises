@@ -280,6 +280,28 @@ asInt_either string = f
            nonDigit char = char < '0' || char > '9'
       step other _ = other
 
+-- 3. The Prelude function concat concatenates a list of lists into a single list, and has the following type.
+	-- file: ch04/ch04.exercises.hs
+	-- concat :: [[a]] -> [a]
+--  Write your own definition of concat using foldr.
+
+-- This was my first attempt. It was correct (had to fight thru some errors). However it is LAME. You'll know why when you see the BEST solution.
+myLameCat :: [[a]] -> [a]
+myLameCat input = foldr step [] input
+   where 
+      step acc item = acc ++ item
+
+-- Duh! HERE is the BETTER solution!!
+myCat :: [[a]] -> [a]
+myCat input = foldr (++) [] input
+
+-- Now, let's analyze WHY I didn't think of that, and HOW I CAN think of that!
+-- Mainly, I just started with the mindset that there must be a step function! That is a wrong assumption. Start by looking for a function to plug in there, 
+--  and only if you can't find one should you resort to coding one and using the name "step".
+--  REMEMBER to think in terms of "transforming the list", replacing cons with some operation, and replacing [] with something!!!
+
+
+
 
 
 
