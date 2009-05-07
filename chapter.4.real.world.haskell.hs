@@ -335,6 +335,10 @@ patternTest = case [[3,3],[4,4]] of
 	((x:xs):ys) -> (2:x:xs):ys 
 	otherwise -> error "no match"
 
+listTest = case [3] of
+   (x:xs) -> "Was matched by (x:xs)"
+   _      -> "Was NOT matched by anything!"
+
 -- END experimental
 
 gb_groupBy :: (a -> a -> Bool) -> [a] -> [[a]]
@@ -343,16 +347,13 @@ gb_groupBy :: (a -> a -> Bool) -> [a] -> [[a]]
 gb_groupBy p input = foldr step [] input
    where
       step item acc = case acc of
-        []                           -> [[item]]
-        ((x:xs):[])                  -> if p x item
-                                        then [item:x:xs]
-                                        else [item]:acc
-        ((x:xs):ys)                  -> if p x item
-                                        then (item:x:xs):ys
-                                        else [item]:acc
-        _                            -> error "Did not match your patterns"
+           []                           -> [[item]]
+           ((x:xs):ys)                  -> if p x item
+                                           then (item:x:xs):ys
+                                           else [item]:acc
+           []:_                         -> error "This pattern should never happen"
 
-
+-- Next question: does -fwarn-incomplete-patterns show that I've covered all pattern possibilities?
 
 
 
