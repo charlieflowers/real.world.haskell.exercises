@@ -319,8 +319,48 @@ ftw_foldr_takeWhile p list = foldr step [] list
                     then item : acc
                     else []
 
+-- 5. The Data.List module defines a function, groupBy, which has the following type. No comments
+-- 
+-- -- file: ch04/ch04.exercises.hs
+-- groupBy :: (a -> a -> Bool) -> [a] -> [[a]]
+-- Use ghci to load the Data.List module and figure out what groupBy does, then write your own implementation using a fold. 
+-- 
 
- 
+-- Some thoughts:
+-- They said use a fold, but not which one. That's up to me (first guess, foldl').
+-- The idea is that the function you provide is an "equality test", but it can be anything that meets the type signature.
+
+-- Some experimental / test stuff for interpreter
+patternTest = case [[3,3],[4,4]] of 
+	((x:xs):ys) -> (2:x:xs):ys 
+	otherwise -> error "no match"
+
+-- END experimental
+
+gb_groupBy :: (a -> a -> Bool) -> [a] -> [[a]]
+
+-- I'm going to try very hard to have the accumulator be nothing but the final result. I think I can do that with 2 levels of pattern matching.
+gb_groupBy p input = foldr step [] input
+   where
+      step item acc = case acc of
+        []                           -> [[item]]
+        ((x:xs):[])                  -> if p x item
+                                        then [item:x:xs]
+                                        else [item]:acc
+        ((x:xs):ys)                  -> if p x item
+                                        then (item:x:xs):ys
+                                        else [item]:acc
+        _                            -> error "Did not match your patterns"
+
+
+
+
+
+
+
+
+
+
 
 
 
