@@ -300,8 +300,27 @@ myCat input = foldr (++) [] input
 --  and only if you can't find one should you resort to coding one and using the name "step".
 --  REMEMBER to think in terms of "transforming the list", replacing cons with some operation, and replacing [] with something!!!
 
+-- 4. Write your own definition of the standard takeWhile function, first using explicit recursion, then foldr. 
+
+recursion_takeWhile :: (a -> Bool) -> [a] -> [a]
+
+recursion_takeWhile p [] = []
+recursion_takeWhile p (x:xs) = if p x
+                               then x: (recursion_takeWhile p xs)
+                               else []
+
+-- Interesting that foldr goes backwards thru list, but takeWhile takes the front of the list. At first I thought this was a problem. But actually,
+--  I think it is helpful. If p ever fails, wipe out acc. Otherwise, keep adding to it.
+ftw_foldr_takeWhile :: (a -> Bool) -> [a] -> [a]
+
+ftw_foldr_takeWhile p list = foldr step [] list
+  where 
+    step item acc = if p item 
+                    then item : acc
+                    else []
 
 
+ 
 
 
 
