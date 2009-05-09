@@ -2,6 +2,7 @@
 import Data.List (isPrefixOf, isInfixOf, foldl')
 import Data.Char (toUpper)
 import Data.Char (digitToInt)
+import GHC.Unicode (Char.isSpace)
 
 -- My own playing around with break:
 
@@ -487,9 +488,22 @@ myCycleleft input = foldl' step [] [input]
       step _ [] = foldl' step [] [input]
       step acc (x:xs) = x:(step acc xs)
 
+-- Now, for "words"
 
+charIsSpace = GHC.Unicode.isSpace
 
+testCharIsSpace = GHC.Unicode.isSpace ' '
+secondTest = charIsSpace ' '
 
+myWords :: String -> [String]
+
+myWords string = foldr step [] (dropWhile charIsSpace string)
+   where 
+      step space ([]:xs)      | charIsSpace space = []:xs    -- this consumes a number of space chars next to each other.
+      step space (x:xs)       | charIsSpace space = []:x:xs
+      step space []           | charIsSpace space = []
+      step char (x:xs)                            = (char : x) : xs
+      step char []                                = [[char]] 
 
 
 
