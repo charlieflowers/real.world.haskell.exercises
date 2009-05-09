@@ -495,16 +495,17 @@ charIsSpace = GHC.Unicode.isSpace
 testCharIsSpace = GHC.Unicode.isSpace ' '
 secondTest = charIsSpace ' '
 
-myWords :: String -> [String]
-
-myWords string = foldr step [] (dropWhile charIsSpace string)
+charIsSpace = GHC.Unicode.isSpace
+myWords_FailsOnInfiniteList :: String -> [String]
+myWords_FailsOnInfiniteList string = foldr step [] (dropWhile charIsSpace string)
    where 
-      step space ([]:xs)      | charIsSpace space = []:xs    -- this consumes a number of space chars next to each other.
+      step space ([]:xs)      | charIsSpace space = []:xs    
       step space (x:xs)       | charIsSpace space = []:x:xs
       step space []           | charIsSpace space = []
       step char (x:xs)                            = (char : x) : xs
       step char []                                = [[char]] 
 
+-- PICK UP RIGHT HERE NEXT TIME!! MAKE MYWORDS THAT DOES DEAL WITH INFINITE LISTS!! PUT THAT ISSPACE CHECK ON THE FRONT OF AN || SO YOU CAN SHORT-CIRCUIT!
 
 
 
