@@ -353,7 +353,137 @@ gb_groupBy p input = foldr step [] input
                                            else [item]:acc
            []:_                         -> error "This pattern should never happen"
 
--- Next question: does -fwarn-incomplete-patterns show that I've covered all pattern possibilities?
+-- Next question: does -fwarn-incomplete-patterns show that I've covered all pattern possibilities? Answer: it does now, after I got advice on StackOverflow.
+
+-- 6. How many of the following Prelude functions can you rewrite using list folds?
+-- 
+-- any 
+-- cycle 
+-- words 
+-- unlines 
+--
+-- For those functions where you can use either foldl' or foldr, which is more appropriate in each case? 10
+
+-- Notes:
+-- 1. DON'T FORGET TO ANSWER THEIR QUESTION FOR EACH: IS FOLDL' OR FOLDR BETTER??????
+-- 2. Note that the way they phrased the question seems to indicate that it MAY BE IMPOSSIBLE to do some of them with folds.
+-- 3. ALSO NOTE that they didn't actually SAY to implement them! They're asking about possibility! I may try to write them all anyway, but not if it takes ALL NIGHT!! :)
+
+myAny_thatFailsWithInfiniteList :: (a -> Bool) -> [a] -> Bool
+myAny_thatFailsWithInfiniteList p list = foldl' step False list
+   where 
+      step True item = True
+      step False item = p item
+
+-- Yes, you can implement it with a fold. Seems foldl' and foldr are on equal footing here.
+--
+-- AHH BUT WAIT!!! Consider an infinite list handed to you. You have to remember, LAZY EVALUATION!! It may actually "figure out" that it never has to hit
+--   the list again. And if it doesn't "figure that out" based on the way you wrote it so far, then you can definitely re-write it to do so.
+-- It FAILS RIGHT NOW, on infinite list. So, let's take another stab....
+
+-- Let's just "transliterate" it to a foldr and see what we get.
+myAny_foldr_alsoNoInfiniteList :: (a -> Bool) -> [a] -> Bool
+myAny_foldr_alsoNoInfiniteList p list = foldr step False list
+   where
+      step _ True     = True
+      step item False = p item
+
+-- Nope. In fact, that one gets a stack overflow on infinte list (first one probably does too, i just didn't let it run)
+
+-- So, how WOULD you write it to handle infinite lists? I'm really not sure, since both folds set out to walk the entire list.
+
+-- Based on book comments, I think if I call (pred a || b), it might work. Not sure why yet, but let's see it work and then dissect it.
+myAny :: (a -> Bool) -> [a] -> Bool
+myAny p list = foldr step False list
+   where
+      step item acc = p item || acc
+
+-- YES!!! That DOES work on an infinite list!!! Now, the question is WHY??
+--  (and from there launched a very intensive learning period! Read "A tutorial on the universality and expressiveness of fold", 
+--  finished "Why FP matters", and got some great answers to questions I asked on StackOverflow. I think FP appears to be very 
+--  powerful indeed, and to get even more out of it, you can become a mathematician ... which is cool with me! Helluva crossover 
+--  between 2 things I'm interested it!)
+
+-- And during all this, the following fundamental principle came to me (which I of course twittered the moment it hit): 
+-- "If you want more software power, you'll need more abstraction. Then, you're limited to humans who can mentally handle those abstractions. That
+--  is a fundamental law of the universe, and it is why a few top notch developers will always outpace many intermediate developers."
+
+-- And I now KNOW why that myAny impl works on infinite lists! It is because the || operator is strict in its first arg, but not its second arg. Also,
+--  the way I've written it amounts to a call to step that is of the form (True || acc). Anytime you have (True || anything whatsoever), it will 
+--  return True without ever evaluating "anything whatsoever".
+
+-- Also, based on this, I hypothesize that myAny will NEVER RETURN if I give it an infinite list that does NOT have an element that meets the predicate. In 
+--  other words, EVEN THIS IMPL OF MYANY DOES NOT WORK ON **ALL** INFINITE LISTS!! Should get stack overflow if i let it go that far.
+--  Testing now on (myAny odd [2,4 ..])
+--  Well, it is STILL RUNNING, and this is very interesting. Perhaps I WON'T get a StackOverflow, due to TAIL CALL OPTIMIZATION! Maybe it will just 
+--   run forever. It does not have to build up a very large thunk at all! Either way, of course, it can never return an answer.
+
+-- Continuing with the Real World Haskell exercises:
+-- implementing cycle with fold.
+
+myCycle :: [a] -> [a]
+
+-- From playing in interpreter, I gather that this returns one list, and that the list is infinite, and all it does is repeat the initial list over and over.
+--  Yep, just confirmed it with documentation.
+--  I'm going to start from the mindset that foldr is probably best for this too, simply because it can handle infinite lists. foldl and foldl' never can as far as I can see.
+-- myCycle input = foldr (:) input input
+-- That one doesn't work! It ONLY repeats the list ONE TIME, and then ends. So myCycle [1,2,3] gives [1,2,3,1,2,3]
+myCycle_foldrAndRecursion input = foldr (:) (myCycle input) input -- Is that cheating? I'm using explicit recursion AND foldr.
+-- Perhaps that IS cheating, but it definitely WORKS. And when preceded with take, as in (take 500 (myCycle [1,2,3])), it only gives 500 elements! No problemo.
+
+-- Can it be done without the explicit recursion? Surely it can, eh? Let's see....
+myCycle input = foldr (:) (foldr (:) input input) input -- now THAT is TRULY some WEIRD LOOKIN' SHIT!
+-- Well, THAT'S STRANGE!!!! It ONLY REPEATS THE LIST 3 TIMES, NO MATTER WHAT!!??!!
+-- Oh, I get it! If I want 4 repetitions, I must do this:
+myCycle4reps input = foldr (:) (foldr (:)    (  foldr (:) input input   )          input) input 
+
+-- Suppose, just for the hell of it, I make the accumulator a pair, one side of which is the whole list.
+myCyclePair input = foldr step (input, []) input
+   where 
+      step item (input, acc) = (input, item : acc)
+-- No, that doesn't work either. It merely duplicates the list one time.
+
+-- Seems that the only way to make the list repeat infinitely is to do some operation that is infinite. Recursion is one such operation. I need to repeat the fold forever.
+--  Not sure if there is any other way to do it. If not, that means you have to use foldr and explicit recursion together.
+
+-- Here's a cheat. What if I use specification by example to get the job done, and just carry the foldr around like baggage because the exercise requires it!
+myCyclebaggage input = foldr (:) [] [repeat input]
+-- Yep, that works. But it too is kind of a cheat, yes?
+
+-- WAIT A MINUTE!! What if I turn the input into a list of lists! Then, the first item i get is the whole list. Still, that would be the one item in my list, and it 
+--  would be the only time my step function gets called. I'd have to repeat it.
+
+-- You have TWO CHOICES. Either 
+-- 1) your step function gets called only once, and you do the infinite magic there, OR
+-- 2) you magically infinitize the original input that you feed to foldr, so that your step function gets called an infinite number of times.
+
+-- One way to do # 1 above would be to MAKE STEP ITSELF RECURSIVE!!
+
+myCyclestepRecursive input = foldr step [] [input]
+   where
+      step item acc = item ++ (step item [])
+-- YES, THAT'S RIGHT!!!!! But it still uses explicit recursion, so perhaps it is still a little bit cheating.
+
+-- What if step calls foldr again? Maybe that is the right solution. Let's see.
+myCyclefoldrTofoldr input = foldr step [] [input]
+   where
+      step item acc = item ++ (foldr step [] [input])
+
+-- YES!! I like that solution VERY MUCH!! No explicit recursion whatsoever, just TWO "nested" (if you will) usages of foldr!!
+
+-- Let's see if I can do it without the ugly ++
+myCycleNoExplicitRecursion input = foldr step [] [input]
+   where
+      step [] _ = foldr step [] [input]
+      step (x:xs) acc = x: (step xs acc)
+
+-- YES!!! That is it! That is my preferred solution!!!!
+
+
+
+
+
+
 
 
 
