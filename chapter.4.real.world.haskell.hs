@@ -472,6 +472,7 @@ myCyclefoldrTofoldr input = foldr step [] [input]
 -- YES!! I like that solution VERY MUCH!! No explicit recursion whatsoever, just TWO "nested" (if you will) usages of foldr!!
 
 -- Let's see if I can do it without the ugly ++
+myCycleNoExplicitRecursion [] = error "empty list"
 myCycleNoExplicitRecursion input = foldr step [] [input]
    where
       step [] _ = foldr step [] [input]
@@ -479,7 +480,12 @@ myCycleNoExplicitRecursion input = foldr step [] [input]
 
 -- YES!!! That is it! That is my preferred solution!!!!
 
+-- Now, I gotta do one with foldl', just to see if I learn anything from it.
 
+myCycleleft input = foldl' step [] [input] 
+   where
+      step _ [] = foldl' step [] [input]
+      step acc (x:xs) = x:(step acc xs)
 
 
 
