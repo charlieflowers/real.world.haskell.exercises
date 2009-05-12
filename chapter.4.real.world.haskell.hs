@@ -1,6 +1,7 @@
 -- Now in Chapter 4
 import Data.List (isPrefixOf, isInfixOf, foldl')
 import Data.Char (toUpper)
+import Data.Char (isUpper)
 import Data.Char (digitToInt)
 import GHC.Unicode (Char.isSpace)
 
@@ -597,6 +598,27 @@ myWords_giorgio xs = foldr step [""] xs
 -- YES!!!  Giorgio's version DOES work against infinite lists!! Let's break it down!
 -- Well, there's nothing TO break down really. It looks very similar to mine above, but it works against infinite and mine does not!
 
+-- ***********************************************************
+-- OK!! GOT SOME MORE ANSWERS FROM STACKOVERFLOW.COM, AND NOW I BELIEVE I KNOW HOW TO MAKE MYWORDS WORK ON INFINITE LISTS!! 
+--  The KEY is to produce SOME PART of the output BEFORE you eval the second arg to step!!
+
+myWords_worksOnInfiniteButIWantToTweak :: String -> [String]
+myWords_worksOnInfiniteButIWantToTweak string = foldr step [""] (dropWhile charIsSpace string)
+   where 
+      step space acc | charIsSpace space     = "":acc
+      step char acc                          = [char:(head acc)] ++ tail acc
+ 
+
+
+
+
+
+
+
+
+
+
+
 -- Next, let's do "unlines" as a fold.
 
 myUnlines :: [String] -> String
@@ -605,7 +627,8 @@ myUnlines list = foldr step "" list
       step word ""  = word
       step word acc = word ++ "\n" ++ acc
 
-
+myCapCount :: String -> Int
+myCapCount = length . filter (isUpper . head) . words
 
 
 
