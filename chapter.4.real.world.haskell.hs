@@ -620,8 +620,45 @@ myWords2 string = foldr step [""] (dropWhile charIsSpace string)
 myWords3 :: String -> [String]
 myWords3 string = foldr step [""] (dropWhile charIsSpace string)
    where 
-      step space acc | charIsSpace space     = "":acc -- this assures there is ALWAYS a string at the head that we want to add to
+      step space acc | charIsSpace space     = "":acc
       step char (x:xs)                       = (char:x):xs
+
+-- That works GREAT! Only problem ... non-exhaustive pattern matching! And I have a feeling when we add the missing patterns, we won't
+--  work on infinite lists any longer!! Let's see!
+myWords4 :: String -> [String]
+myWords4 string = foldr step [""] (dropWhile charIsSpace string)
+   where 
+      step space acc | charIsSpace space     = "":acc
+      step char (x:xs)                       = (char:x):xs
+      step _ []                              = error "this should be impossible"
+
+-- NO! This WORKS FINE on infinite lists!!! That means perhaps I DID NOT UNDERSTAND why my first attempt did not work IN THE FIRST PLACE!
+-- Based on this, I am starting to think that the ONLY PROBLEM with my original was as follows. First, I matched the 2nd arg against [], and second,
+--  that match could ACTUALLY HAPPEN! IF such a match were to ever happen, I'd get stack overflow. Here, I AM matching against [], but 
+--  that pattern match never succeeds. It is not that I am attempting such a match that is the problem ... the problem is only when such a 
+--  match succeeds. In this case, I never "fall to it". Therefore, the "step _ []" equation can never be executed and is only there to 
+--  silence the compiler warning.
+--  IN FACT, I THINK THERE WOULD BE A PROBLEM EVEN IF THE PATTERN MATCH DID NOT SUCCEED! IF IT WERE TO EVEN *TRY* THE PATTERN MATCH, WE'D
+--   GET STACK OVERFLOW. To test that theory, here's myWords5, which tries the "impossible pattern" first.
+myWords5 :: String -> [String]
+myWords5 string = foldr step [""] (dropWhile charIsSpace string)
+   where 
+      step _ []                              = error "this should be impossible"
+      step space acc | charIsSpace space     = "":acc
+      step char (x:xs)                       = (char:x):xs
+
+-- YES!!! MY THEORY IS CORRECT! PUTTING THE IMPOSSIBLE PATTERN MATCH FIRST DOES CAUSE A STACK OVERFLOW! The problem is that it DOES have to 
+--   eval the 2nd arg, just to see if it is empty. Of course, it never can be empty in this example, but the pattern match code has no way
+--   of knowing that! 
+--
+--  So, this debunks a few myths as well.
+--  1. There's not any "better delayed evaluation" for using ++ instead of cons. I have switched completely to cons and still all works versus infinite list.
+--  2. It is PERFECTLY SAFE to pattern match against (x:xs) for the second arg. All that does is find the first cons value constructor and stop. xs itself
+--       is never evaluated ... it will remain a thunk.
+--  3. IT IS NOT SAFE TO PATTERN MATCH ARG 2 AGAINST []. That will cause you to be unable to handle infinite lists!
+--  4. In general, you can MENTION the second arg, or the tail of the second arg, ALL YOU WANT! What matters is whether or not you FORCE IT TO BE
+--      EVALUATED!!
+
 
 
 
