@@ -588,13 +588,22 @@ myWords_davidb lst = let (word, rest) = foldr step ("", []) lst
 
 -- davidB does NOT work on infinite lists!
 
-myWords_giorgio xs = foldr step [[]] xs
+myWords_giorgio :: String -> [String]
+myWords_giorgio xs = foldr step [""] xs
    where 
       step x result | not . charIsSpace $ x    = [x:(head result)]++tail result
                     | otherwise            = []:result
 
 -- YES!!!  Giorgio's version DOES work against infinite lists!! Let's break it down!
+-- Well, there's nothing TO break down really. It looks very similar to mine above, but it works against infinite and mine does not!
 
+-- Next, let's do "unlines" as a fold.
+
+myUnlines :: [String] -> String
+myUnlines list = foldr step "" list
+   where 
+      step word ""  = word
+      step word acc = word ++ "\n" ++ acc
 
 
 
