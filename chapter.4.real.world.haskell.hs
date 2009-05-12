@@ -605,13 +605,34 @@ myWords_giorgio xs = foldr step [""] xs
 myWords_worksOnInfiniteButIWantToTweak :: String -> [String]
 myWords_worksOnInfiniteButIWantToTweak string = foldr step [""] (dropWhile charIsSpace string)
    where 
-      step space acc | charIsSpace space     = "":acc
+      step space acc | charIsSpace space     = "":acc -- this assures there is ALWAYS a string at the head that we want to add to
       step char acc                          = [char:(head acc)] ++ tail acc
- 
+
+-- Let's see if I can get rid of head and tail via pattern matching
+--  YES, YOU CAN!!!! Works just FINE! 
+myWords2 :: String -> [String]
+myWords2 string = foldr step [""] (dropWhile charIsSpace string)
+   where 
+      step space acc | charIsSpace space     = "":acc -- this assures there is ALWAYS a string at the head that we want to add to
+      step char (x:xs)                       = [char:x] ++ xs
+
+-- Now, let's see if we can get rid of (++)
+myWords3 :: String -> [String]
+myWords3 string = foldr step [""] (dropWhile charIsSpace string)
+   where 
+      step space acc | charIsSpace space     = "":acc -- this assures there is ALWAYS a string at the head that we want to add to
+      step char (x:xs)                       = (char:x):xs
 
 
 
 
+
+
+
+
+
+-- HEY! Here's a cool POINT FREE STYLE definition for a function to test myWords against an infinite list!
+testMyWords f = take 5 . (f . cycle)
 
 
 
