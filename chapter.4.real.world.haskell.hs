@@ -495,7 +495,6 @@ charIsSpace = GHC.Unicode.isSpace
 testCharIsSpace = GHC.Unicode.isSpace ' '
 secondTest = charIsSpace ' '
 
-charIsSpace = GHC.Unicode.isSpace
 myWords_FailsOnInfiniteList :: String -> [String]
 myWords_FailsOnInfiniteList string = foldr step [] (dropWhile charIsSpace string)
    where 
@@ -505,7 +504,110 @@ myWords_FailsOnInfiniteList string = foldr step [] (dropWhile charIsSpace string
       step char (x:xs)                            = (char : x) : xs
       step char []                                = [[char]] 
 
+myWords_catInsteadOfCons :: String -> [String]
+myWords_catInsteadOfCons string = foldr step [] (dropWhile charIsSpace string)
+   where 
+      step space ("":xs)      | charIsSpace space = [""] ++ xs -- keep it exactly the same as it was!    
+      step space (x:xs)       | charIsSpace space = [""] ++ [x] ++ xs
+      step space []           | charIsSpace space = []
+      step char (x:xs)                            = [char : x] ++ xs
+      step char []                                = [[char]] 
+
+-- Using cat instead of cons doesn't change anything. The function works on finite, but stack overflows on infinite.
+
 -- PICK UP RIGHT HERE NEXT TIME!! MAKE MYWORDS THAT DOES DEAL WITH INFINITE LISTS!! PUT THAT ISSPACE CHECK ON THE FRONT OF AN || SO YOU CAN SHORT-CIRCUIT!
+
+{-
+myWords :: String -> [String]
+myWords string = foldr step [] (dropWhile charIsSpace string)
+   where
+-}
+
+-- Let's do some experimenting here. Can we match an infinite list against x:xs, as long as we don't eval xs? YES IT IS!!
+-- YES, IT IS!
+
+-- Can you even recurse using xs (which, btw, mean passing xs as a funciton arg, which we KNOW will be a thunk?) YES, YOU CAN!!
+-- YES, YOU CAN!!
+
+-- test (x:xs) = x:test xs
+    
+-- Well, it seems like that right there is your answer! How and why am I adding the entire xs to the end of my stuff anyway?? Is that even RIGHT?
+--  What I'm splitting up there is the ACCUMULATOR! NOT the whole list. And YES, that makes total sense. 
+
+-- Hey, it just occurred to me that the dropWhile may actually be what is causing it to eval the whole list. Let's take it off just to see what we get. Actually, do I 
+--  need it anyway? After all, my step definition ALREADY HANDLES SPACES!!
+--  Well, turns out I DO need it anyway, or some other mechanism, because otherwise a string starting with spaces returns result starting with "".
+--  And ... no, removing the dropWhile DOES NOT make it work on infinite lists!
+myWords_withoutDropWhile :: String -> [String]
+myWords_withoutDropWhile string = foldr step [] string
+   where 
+      step space ([]:xs)      | charIsSpace space = []:xs    
+      step space (x:xs)       | charIsSpace space = []:x:xs
+      step space []           | charIsSpace space = []
+      step char (x:xs)                            = (char : x) : xs
+      step char []                                = [[char]] 
+
+-- Even though I can't yet pinpoint why these functions don't work against infinite lists, I do know that using break is a perfectly legit approach to the exercise. And 
+--  I know that IF YOU ONLY DIRECTLY ACCESS THE FIRST TUPLE OF BREAK'S RESULT, you will be ok with an infinite list. Therefore, let me do that.
+{-
+BUT I AM HAVING A HARD TIME WRITING THIS!! LET ME FIRST WRITE ONE USING EXPLICIT RECURSION! THEN, we'll see if I can figure out how to write one using fold. 
+myWords_break :: String -> [String]
+myWords_break input = foldr step [] input
+   where
+      step char 
+      nextWord remainingText = break isSpace remainingText
+      nextWord []            = []
+-}
+
+prepareInput input = dropWhile charIsSpace input
+
+myWords_explicitRecursion_break :: String -> [String]
+myWords_explicitRecursion_break input = case break charIsSpace (prepareInput input) of
+   ("", "")   -> [] 
+   ("", rest) -> myWords_explicitRecursion_break rest
+   (fw, rest) -> fw:myWords_explicitRecursion_break rest
+
+-- OK, my main problem before was in NOT KNOWING HOW BREAK ITSELF WORKS!! There are cases where it returns ("",""). Also, it alone would NEVER CONSUME ANY SPACES, leading to 
+--  infinite loops that get you nowhere.
+
+-- Does my explicit recursion version handle infinite lists? My guess is YES, because the "rest" is only passed as part of function calls, and therefore will be a thunk.
+-- And INDEED, the answer is yes, as proven by this call: take 15 (myWords_explicitRecursion_break (cycle "fuck "))
+
+-- NOW, let's see about turning my explicit recursion version into a fold!!
+
+-- I think it is time to punt on this. They haven't taught this yet, and I've spent a lot fo time and effort trying to figure it out. That will pay off when they 
+--  actually DO teach it. I think the smartest, most pragmatic course of action is to see what other answers have been submitted by other readers, see if any of 
+--  them work vs infinite lists, and if so, see if i can determine why.
+
+myWords_davidb lst = let (word, rest) = foldr step ("", []) lst
+                       in if null word then rest else word : rest
+  where
+    step c (word,rest)
+      | charIsSpace c = if null word then ("",rest) else ("", word:rest)
+      | otherwise = ((c:word), rest)
+
+-- davidB does NOT work on infinite lists!
+
+myWords_giorgio xs = foldr step [[]] xs
+   where 
+      step x result | not . charIsSpace $ x    = [x:(head result)]++tail result
+                    | otherwise            = []:result
+
+-- YES!!!  Giorgio's version DOES work against infinite lists!! Let's break it down!
+
+
+
+
+
+
+
+
+
+
+
+   
+
+
 
 
 
