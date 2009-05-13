@@ -625,8 +625,8 @@ myWords3 string = foldr step [""] (dropWhile charIsSpace string)
 
 -- That works GREAT! Only problem ... non-exhaustive pattern matching! And I have a feeling when we add the missing patterns, we won't
 --  work on infinite lists any longer!! Let's see!
-myWords4 :: String -> [String]
-myWords4 string = foldr step [""] (dropWhile charIsSpace string)
+myWords :: String -> [String]
+myWords string = foldr step [""] (dropWhile charIsSpace string)
    where 
       step space acc | charIsSpace space     = "":acc
       step char (x:xs)                       = (char:x):xs
