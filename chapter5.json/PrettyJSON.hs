@@ -65,13 +65,13 @@ astral n = smallHex (a + 0xd800) <> smallHex (b + 0xdc00)
 -- This turns a Char into a Doc that contains the string representation of the hex for that character.
 -- ord is in Data.Char, and it returns an Int with basically the ascii (if you will) for the Char (we're unicode of course)
 hexEscape :: Char -> Doc
-hexEscape c = | d < 0x10000 = smallHex d
+hexEscape c   | d < 0x10000 = smallHex d
               | otherwise   = astral (d - 0x10000)
-   where d = ord C  -- Seeing a lot of cases where variable and where are on same line now.
+   where d = ord c  -- Seeing a lot of cases where variable and where are on same line now.
 
-series :: Char -> Char -> (a -> Doc) -> -> [a] -> Doc
-series open close itemRenderFunction = enclose open close . fsep . punctuate (char, ',') . map item
-
+series :: Char -> Char -> (a -> Doc) -> [a] -> Doc
+series open close item = enclose open close
+                       . fsep . punctuate (char ',') . map item
 
 
 

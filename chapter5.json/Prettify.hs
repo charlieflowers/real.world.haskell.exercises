@@ -53,6 +53,9 @@ x </> y = x <> softline <> y
 softline :: Doc
 softline = group line
 
+group :: Doc -> Doc
+group x = flatten x `Union` x
+
 -- Every time we encounter a soft newline, we will maintain TWO ALTERNATE REALITIES. In one, the doc has been split to a new line. In the 
 --   other, it has not. We do this using the Union constructor. They introduced Union because it means something different than Concat.
 --   Union means, here;s an alternate reality for this part of the Doc. 
@@ -86,4 +89,30 @@ punctuate p [d]    = [d]
 punctuate p (d:ds) = (d <> p)  : punctuate p ds
 
 pretty :: Int -> Doc -> String
+pretty width x = best 0 [x]
+   where best col (d:ds) =
+               case d of
+                  Empty -> best col ds
+                  Char c -> c: best (col + 1) ds
+                  Text s -> s ++ best (col + length ds) ds
+                  Line -> '\n' : best 0 ds
+                  a `Concat` b -> best col (a:b:ds)
+                  a `Union` b -> nicest col (best col (a:ds))
+                                            (best col (b:ds))
+         best _ _ = ""
+         nicest col a b | (width - least) `fits` a = a
+                        | otherwise                = b
+                        where least = min width col
+
+-- This answers the question, "does it fit?"
+fits :: Int -> String -> Bool
+w `fits` _ | w < 0   = False
+w `fits` ""          = True
+w `fits` ('\n':_)    = True
+w `fits` (c:cs)      = (w - 1) `fits` cs
+
+
+
+
+         
 
