@@ -163,9 +163,7 @@ hardLines doc = getLine 0 [] [doc]
 -- 
 -- NO, I am punting on that for now too. Here's plain ol fill, with no provisions for reuse.
 fill :: Int -> Doc -> Doc
-fill desiredWidth doc = charlieProcessNode desiredWidth 0 doc
-	
-charlieProcessNode desiredWidth col doc = processNode 0 [doc]
+fill desiredWidth doc = processNode 0 [doc]
 	where 
 		processNode col (d:ds) = 
 			case d of 
