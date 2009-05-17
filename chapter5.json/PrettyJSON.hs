@@ -1,8 +1,10 @@
 -- PrettyJSON
 module PrettyJSON 
-   (
+{-   (
      renderJValue -- This is the ONLY thing we export from this module!!
    ) where
+-}
+where
 
 import Numeric (showHex)
 import Data.Char (ord)
@@ -18,8 +20,12 @@ renderJValue JNull = text "null"
 renderJValue (JNumber n) = double n
 renderJValue (JString str) = string str
 renderJValue (JArray ary) = series '[' ']' renderJValue ary
-renderJValue (JObject obj) = series '{' '}' field obj
-   where field (name,val) = string name
+renderJValue (JObject listOfTuples) = series '{' '}' fieldRenderer listOfTuples
+   where fieldRenderer (name,val) = string name
+                         <> text ": "
+                         <> renderJValue val
+
+unUnsedFieldRendererForCharlie (name,val) = string name
                          <> text ": "
                          <> renderJValue val
 
@@ -70,9 +76,11 @@ hexEscape c   | d < 0x10000 = smallHex d
    where d = ord c  -- Seeing a lot of cases where variable and where are on same line now.
 
 series :: Char -> Char -> (a -> Doc) -> [a] -> Doc
-series open close item = enclose open close
-                       . fsep . punctuate (char ',') . map item
+series open close itemRenderFunction = enclose open close
+                       . fsep . punctuate (char ',') . map itemRenderFunction
 
+sampleJson = JObject [ ("Name", JString "Fred"), ("Age",  JNumber 42.4)]
+sampleDoc = renderJValue sampleJson
 
 
 

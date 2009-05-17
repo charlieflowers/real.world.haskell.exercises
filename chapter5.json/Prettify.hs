@@ -81,12 +81,12 @@ compact x = transform [x]
                a `Concat` b     -> transform (a:b:ds)
                _ `Union`  b     -> transform (b:ds) -- AH, I see! For ugly rendering, IGNORE the flattened version, cuz ugly is ok.
 
--- This one is still a little unclear to me. obviously it has to do with putting commas (or whatever else) into a series. They
---   give no explanation and it appears to be using point free style so the specific calls to it don't tell me as much as i hoped.
+-- This takes FIRST a single Doc which contains the desired "puncutation". Seen it called with a single-char Doc containing ',', for ex.
+-- SECOND, takes a list of Docs to apply punctuation to. For ex, seen it called with a list of rendered object fields.
 punctuate :: Doc -> [Doc] -> [Doc]
-punctuate p []     = []
-punctuate p [d]    = [d]
-punctuate p (d:ds) = (d <> p)  : punctuate p ds
+punctuate p []     = [] -- empty list returns empty list
+punctuate p [d]    = [d] -- single item list ... just return the same single item list
+punctuate p (d:ds) = (d <> p)  : punctuate p ds -- A multi item list: add the doc to the punctuation doc, then recurse on the tail.
 
 pretty :: Int -> Doc -> String
 pretty width x = best 0 [x]
@@ -110,6 +110,73 @@ w `fits` _ | w < 0   = False
 w `fits` ""          = True
 w `fits` ('\n':_)    = True
 w `fits` (c:cs)      = (w - 1) `fits` cs
+
+-- Exercise 1: fill
+-- Here's how I interpret their incomplete, ambiguous requirements: 
+-- Completely ignore soft line breaks. Those are merely there for actual *printing*, not rendering. They count as a space, not 
+--  as a line break. Therefore, only consider the LEFTHAND SIDE of unions.
+-- Find each line's hard line break. If it is < the desired width, then prepend the necessary spaces. If not leave it alone.
+-- Do this to every line in the document.
+
+-- This takes a Doc, and returns a list of Pairs. Each Pair contains the length of the line and the Doc for the Line ending.
+--  NOTE that it IGNORES soft breaks, aka (Union (Char ' ') Line)
+--  hardLines :: Doc -> [(Int, Doc)]
+--  hardLines doc = getLine 0 [doc]
+--     where getLine startCol (d:ds) = 
+--              case d of
+--                 x `Union` y -> getLine startCol [x]
+--                 Empty -> getLine startCol ds
+--                 Char c -> getLine (startCol + 1) ds
+--                 Text s -> getLine (startCol + length s) ds
+--                 Line -> (startCol, d):getLine 0 ds
+--                 a `Concat` b -> getLine startCol (a:b:ds)
+--           getLine startCol [] = [(startCol, Empty)]
+
+manyLinesDoc :: Doc
+manyLinesDoc = text "Hello " <> text "you" <> line <> text "crazy" <> text " world"
+
+hardLines :: Doc -> [(Int, Doc)]
+hardLines doc = getLine 0 [] [doc]
+   where getLine startCol acc (d:ds) = 
+            case d of
+               x `Union` y -> getLine startCol acc [x]
+               Empty -> getLine startCol acc ds
+               Char c -> getLine (startCol + 1) acc ds
+               Text s -> getLine (startCol + length s) acc ds
+               Line -> acc ++ ((startCol, d):getLine 0 acc ds)
+               a `Concat` b -> getLine startCol acc (a:b:ds)
+         getLine startCol acc [] = acc ++ [(startCol, Empty)]
+
+-- It's cool that I was able to make that hardLines function. But really, it's not what we need for fill. The thing bugging me is 
+--  I sense the opportunity for reuse, but haven't yet quite clicked onto the right way to acheive it. So I'll make fill, and it 
+--  will look a lot like "pretty" and "best" and "hardLines", but without reusing anything. Then, between my own progress and the 
+--  book, it will come to me.
+
+-- Basically, you're going to walk through the doc, and for each node, you're going to return a node yourself. Most times, the node
+--  you return will be the same node you got. But sometimes, the node you return will be a different node (because that's the transform
+--  you're doing). Actually, sounds like a fold to me. 
+
+-- This function will loop thru the doc you pass, and for each doc node, it will call a transform function, giving that function the 
+--  starting col position and the Doc. the transform function should then return the new Doc that it wants to replace that Doc with.
+-- transformDoc :: Doc -> (Int -> Doc -> Doc) -> Doc
+-- transformDoc doc transformFunction = helper 0 [doc]
+-- 
+-- NO, I am punting on that for now too. Here's plain ol fill, with no provisions for reuse.
+fill :: Int -> Doc -> Doc
+fill desiredWidth doc = charlieProcessNode desiredWidth 0 doc
+	
+charlieProcessNode desiredWidth col doc = processNode 0 [doc]
+	where 
+		processNode col (d:ds) = 
+			case d of 
+				Empty -> Empty <> processNode col ds
+				Char c -> Char c <> processNode (col + 1) ds
+				Text s -> Text s <> processNode (col + length s) ds
+				Line -> Text (replicate (desiredWidth - col) ' ') <> Line <> processNode 0 ds
+				a `Concat` b -> processNode col (a:b:ds)
+				-- need to translate the left side. the right side is already shortened artificially
+				x `Union` y -> processNode col (x:ds) `Union` processNode col (y:ds)
+		processNode col [] = Text (replicate (desiredWidth - col) ' ')
 
 
 
