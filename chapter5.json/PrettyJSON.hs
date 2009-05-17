@@ -79,7 +79,10 @@ series :: Char -> Char -> (a -> Doc) -> [a] -> Doc
 series open close itemRenderFunction = enclose open close
                        . fsep . punctuate (char ',') . map itemRenderFunction
 
-sampleJson = JObject [ ("Name", JString "Fred"), ("Age",  JNumber 42.4)]
+sampleJson = JObject [ ("Name", JString "Fred"), ("Age",  JNumber 42.4), 
+   ("Pets", JArray [ JString "Fletcher", JString "Cocoa", JString "Bandit", JString "Smokey", JString "GodzillaTheHuge",
+    JString "Oscar" ] ) ]
+
 sampleDoc = renderJValue sampleJson
 
 

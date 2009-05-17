@@ -177,6 +177,68 @@ fill desiredWidth doc = processNode 0 [doc]
 		processNode col [] = spaceOut col
 		spaceOut col = Text (replicate (desiredWidth - col) ' ')
 
+-- This is from another reader. I don't like it because I don't think it meets my interpretation of the requirements. In particular, I 
+--  don't think it will fill out every line. Let me test it and see.
+otherFill :: Int -> Doc -> Doc
+otherFill width x = x <> text (replicate len ' ')
+   where len = width - (length (compact x))
+-- Yes, testing confirms this. This is a cop out of the exercise.
+
+-- NESTING AND INDENTATION. This is here to fulfill exercise 2, which reads as follows: 
+-- 2. Our pretty printer does not take nesting into account. Whenever we open parentheses, braces, or brackets, any lines that 
+--  follow should be indented so that they are aligned with the opening character until a matching closing character is encountered.
+--  Add support for nesting, with a controllable amount of indentation. 
+--  nest :: Int -> Doc -> Doc
+
+nest :: Int -> Doc -> Doc
+nest indentLevel doc = processNode 0 [0] [doc]
+	where 
+		processNode col nestStack (d:ds) = 
+			case d of 
+				Empty -> Empty <> processNode col nestStack ds
+				Char c -> Char c <> processNode (col + 1) newNestStack ds
+					where newNestStack = case c of 
+						c | c == '{' || c == '[' -> (col + 1 + indentLevel):nestStack
+						c | c == '}' || c == ']' -> tail nestStack
+						otherwise                -> nestStack
+				Text s -> Text s <> processNode (col + length s) nestStack ds
+				Line -> Line <> indent (head nestStack) <> processNode 0 nestStack ds
+				a `Concat` b -> processNode col nestStack (a:b:ds)
+				x `Union` y -> processNode col nestStack (x:ds) `Union` processNode col nestStack (y:ds)
+		processNode col nestStack [] = Empty
+		indent numberOfSpaces = Text (replicate numberOfSpaces ' ')
+
+nest2 :: Int -> Doc -> Doc
+nest2 indentLevel doc = processNode 0 [(0,True)] [doc]
+	where 
+		processNode col nestStack (d:ds) = 
+			case d of 
+				Empty -> Empty <> processNode col nestStack ds
+				Char c -> case c of 
+					c | c == '{' || c == '[' -> indent col nestStack <> Char c <> processNode (col + 1) (((col + 1 + indentLevel),False):nestStack) ds
+					c | c == '}' || c == ']' -> indent col nestStack <> Char c <> processNode (col + 1) (tail nestStack) ds
+					otherwise -> indent col nestStack <> Char c <> processNode (col + 1) nestStack ds
+				Text s -> indent col nestStack <> Text s <> processNode (col + length s) nestStack ds
+				Line -> Line <> processNode 0 newNestStack ds
+					where newNestStack = case nestStack of
+						((n,False):ds) -> (n,True):ds
+						_              -> nestStack
+				a `Concat` b -> processNode col nestStack (a:b:ds)
+				x `Union` y -> processNode col nestStack (x:ds) `Union` processNode col nestStack (y:ds)
+		processNode col nestStack [] = Empty
+		indent col nestStack = if(spacesNeeded > 0) 
+		                               then Text (replicate spacesNeeded ' ')
+		                               else Empty
+			where spacesNeeded = (head nestStack) - col
+
+testnest_before = Char '{' <> Text "hello " <> Line <> Text "World " <> Text "How in the hell are you " <> Char '{' <> Text "I'm just " <> Text " fine, thank you very " <> Line <> Text "much. " <> Char '}' <> Text "Why do you " <> Line <> Text "ask?" <> Char '}'
+
+nestedTest = nest2 3 testnest_before
+
+
+
+
+
 
 
 
