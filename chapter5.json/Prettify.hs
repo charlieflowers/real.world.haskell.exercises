@@ -170,11 +170,12 @@ fill desiredWidth doc = processNode 0 [doc]
 				Empty -> Empty <> processNode col ds
 				Char c -> Char c <> processNode (col + 1) ds
 				Text s -> Text s <> processNode (col + length s) ds
-				Line -> Text (replicate (desiredWidth - col) ' ') <> Line <> processNode 0 ds
+				Line -> spaceOut col <> Line <> processNode 0 ds
 				a `Concat` b -> processNode col (a:b:ds)
 				-- need to translate the left side. the right side is already shortened artificially
 				x `Union` y -> processNode col (x:ds) `Union` processNode col (y:ds)
-		processNode col [] = Text (replicate (desiredWidth - col) ' ')
+		processNode col [] = spaceOut col
+		spaceOut col = Text (replicate (desiredWidth - col) ' ')
 
 
 
