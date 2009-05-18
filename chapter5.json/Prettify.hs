@@ -209,27 +209,31 @@ nest indentLevel doc = processNode 0 [0] [doc]
 		indent numberOfSpaces = Text (replicate numberOfSpaces ' ')
 
 nest2 :: Int -> Doc -> Doc
-nest2 indentLevel doc = processNode 0 [(0,True)] [doc]
+nest2 indentLevel doc = processNode 0 False [0] [doc]
 	where 
-		processNode col nestStack (d:ds) = 
+		processNode col shouldIndent nestStack (d:ds) = 
 			case d of 
-				Empty -> Empty <> processNode col nestStack ds
+				Empty -> Empty <> processNode col shouldIndent nestStack ds
 				Char c -> case c of 
-					c | c == '{' || c == '[' -> indent col nestStack <> Char c <> processNode (col + 1) (((col + 1 + indentLevel),False):nestStack) ds
-					c | c == '}' || c == ']' -> indent col nestStack <> Char c <> processNode (col + 1) (tail nestStack) ds
-					otherwise -> indent col nestStack <> Char c <> processNode (col + 1) nestStack ds
-				Text s -> indent col nestStack <> Text s <> processNode (col + length s) nestStack ds
-				Line -> Line <> processNode 0 newNestStack ds
-					where newNestStack = case nestStack of
-						((n,False):ds) -> (n,True):ds
-						_              -> nestStack
-				a `Concat` b -> processNode col nestStack (a:b:ds)
-				x `Union` y -> processNode col nestStack (x:ds) `Union` processNode col nestStack (y:ds)
-		processNode col nestStack [] = Empty
-		indent col nestStack = if(spacesNeeded > 0) 
+					c | isOpen c  -> (if shouldIndent then indent col (last nestStack) else Empty) <>
+						Char c <> processNode (col + 1) False (nestStack ++ [(col + 1 + indentLevel)]) ds
+					c | isClose c -> (if shouldIndent then indent col (last newNestStack) else Empty) <>
+						Char c <> processNode (col + 1) False newNestStack ds
+							where newNestStack = init nestStack
+					otherwise     -> (if shouldIndent then indent col (last nestStack) else Empty) <>
+						Char c <> processNode (col + 1) False nestStack ds
+				Text s -> (if shouldIndent then indent col (last nestStack) else Empty) <> Text s <> 
+					processNode (col + length s) False nestStack ds
+				Line -> Line <> processNode 0 True nestStack ds
+				a `Concat` b -> processNode col False nestStack (a:b:ds)
+				x `Union` y -> processNode col False nestStack (x:ds) `Union` processNode col False nestStack (y:ds)
+		processNode _ _ _ [] = Empty
+		isOpen  c =  c == '{' || c == '['
+		isClose c = c == '}' || c == ']'
+		indent col currentNest = if(spacesNeeded > 0) 
 		                               then Text (replicate spacesNeeded ' ')
 		                               else Empty
-			where spacesNeeded = (head nestStack) - col
+			where spacesNeeded = currentNest - col
 
 testnest_before = Char '{' <> Text "hello " <> Line <> Text "World " <> Text "How in the hell are you " <> Char '{' <> Text "I'm just " <> Text " fine, thank you very " <> Line <> Text "much. " <> Char '}' <> Text "Why do you " <> Line <> Text "ask?" <> Char '}'
 
