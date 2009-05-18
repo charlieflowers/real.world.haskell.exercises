@@ -240,6 +240,22 @@ testnest_before = Char '{' <> Text "hello " <> Line <> Text "World " <> Text "Ho
 nestedTest = nest2 3 testnest_before
 
 
+oc = Empty <> Char '{'
+cc = Empty <> Char '}'
+ob = Empty <> Char '['
+cb = Empty <> Char ']'
+
+
+before_nestManyChanges :: Doc
+before_nestManyChanges = oc <> Text "This " <> ob <> Text "is " <> oc <> Text " a " <> ob <> Text "pain " <> Line
+	<> Text "in the ass " <> cb <> Text "man " <> cc <> Line
+	<> Text "you " <> cb <> Text "know " <> Line
+	<> cc
+
+after_nestManyChanges :: Doc
+after_nestManyChanges = nest 3 before_nestManyChanges
+
+
 
 
 
