@@ -255,7 +255,8 @@ before_nestManyChanges = oc <> Text "This " <> ob <> Text "is " <> oc <> Text " 
 after_nestManyChanges :: Doc
 after_nestManyChanges = nest 3 before_nestManyChanges
 
-
+data BarryTypeCtor t k p = BarryValueCtor { yabba :: p, dabba :: t k }
+	deriving (Show)
 
 
 
